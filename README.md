@@ -2,6 +2,8 @@
 
 Find the cheapest price for any GOG game across **82 countries** — by URL or from your wishlist.
 
+**Requires:** Node.js ≥ 14
+
 ## Install
 
 ```bash
