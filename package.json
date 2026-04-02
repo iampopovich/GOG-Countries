@@ -26,7 +26,7 @@
   "type": "commonjs",
   "main": "index.js",
   "bin": {
-    "gog-price-checker": "./index.js"
+    "gog-countries": "./index.js"
   },
   "files": [
     "index.js",

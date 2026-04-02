@@ -17,7 +17,7 @@ npm install -g gog-countries
 Just run without arguments:
 
 ```
-gog-price-checker
+gog-countries
 ```
 
 ```
@@ -76,13 +76,13 @@ Disco Elysium             12.49     USD       Turkey
 
 ```bash
 # Single game by URL
-gog-price-checker -u https://www.gog.com/game/diablo --normalize --pretty --count 5
+gog-countries -u https://www.gog.com/game/diablo --normalize --pretty --count 5
 
 # Wishlist
-gog-price-checker -w username --pretty
+gog-countries -w username --pretty
 
 # gogdb.org links also work
-gog-price-checker -u https://www.gogdb.org/product/1207658992
+gog-countries -u https://www.gogdb.org/product/1207658992
 ```
 
 ### All flags

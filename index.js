@@ -57,7 +57,7 @@ function printHelp() {
   console.log(`
 GOG Price Checker - Check game prices across different countries
 
-Usage: node index.js [options]
+Usage: gog-countries [options]
 
 Options:
   -u, --url <url>        URL of the game page to scrape
@@ -69,9 +69,9 @@ Options:
   -h, --help             Show this help message
 
 Examples:
-  node index.js -u https://www.gog.com/game/diablo -n -p
-  node index.js -w username -p
-  node index.js --url https://www.gog.com/game/cyberpunk_2077 --count 5
+  gog-countries -u https://www.gog.com/game/diablo -n -p
+  gog-countries -w username -p
+  gog-countries --url https://www.gog.com/game/cyberpunk_2077 --count 5
 `);
 }
 
