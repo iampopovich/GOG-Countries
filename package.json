@@ -1,0 +1,53 @@
+{
+  "name": "gog-countries",
+  "version": "1.0.0",
+  "description": "gog price checker tool in different countries all over the world",
+  "keywords": [
+    "gog",
+    "games",
+    "prices",
+    "tool",
+    "sale",
+    "sales",
+    "gog-galaxy",
+    "gog-games",
+    "tools"
+  ],
+  "homepage": "https://github.com/iampopovich/GOG-Countries#readme",
+  "bugs": {
+    "url": "https://github.com/iampopovich/GOG-Countries/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iampopovich/GOG-Countries.git"
+  },
+  "license": "MIT",
+  "author": "iampopovich",
+  "type": "commonjs",
+  "main": "index.js",
+  "bin": {
+    "gog-price-checker": "./index.js"
+  },
+  "files": [
+    "index.js",
+    "src/",
+    "LICENSE",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "test": "jest",
+    "test:coverage": "jest --coverage",
+    "test:watch": "jest --watch",
+    "prepublishOnly": "npm test"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  },
+  "dependencies": {
+    "inquirer": "^8.2.7"
+  }
+}
