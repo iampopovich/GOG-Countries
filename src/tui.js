@@ -28,7 +28,16 @@ async function handleGamePrice() {
       type: 'input',
       name: 'url',
       message: 'GOG game URL:',
-      validate: v => v.trim() ? true : 'URL cannot be empty'
+      validate: v => {
+        if (!v.trim()) return 'URL cannot be empty';
+        try {
+          const parsed = new URL(v.trim());
+          if (!['http:', 'https:'].includes(parsed.protocol)) return 'URL must use http or https';
+        } catch {
+          return 'Invalid URL';
+        }
+        return true;
+      }
     }
   ]);
 
