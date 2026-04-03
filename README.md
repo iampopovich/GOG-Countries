@@ -6,8 +6,19 @@ Find the cheapest price for any GOG game across **82 countries** — by URL or f
 
 ## Install
 
+**From npm:**
 ```bash
-npm install -g gog-countries
+npm install -g @iampopovich/gog-countries
+```
+
+**From GitHub Packages:**
+```bash
+npm install -g @iampopovich/gog-countries --registry=https://npm.pkg.github.com
+```
+
+**Without installing TUI mode (npx):**
+```bash
+npx @iampopovich/gog-countries
 ```
 
 ## Usage
