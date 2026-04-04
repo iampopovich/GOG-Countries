@@ -1,5 +1,10 @@
 # GOG Countries
 
+[![npm version](https://img.shields.io/npm/v/@iampopovich/gog-countries)](https://www.npmjs.com/package/@iampopovich/gog-countries)
+[![npm downloads](https://img.shields.io/npm/dm/@iampopovich/gog-countries)](https://www.npmjs.com/package/@iampopovich/gog-countries)
+[![npm license](https://img.shields.io/npm/l/@iampopovich/gog-countries)](https://github.com/iampopovich/GOG-Countries/blob/main/LICENSE)
+[![node version](https://img.shields.io/node/v/@iampopovich/gog-countries)](https://www.npmjs.com/package/@iampopovich/gog-countries)
+
 Find the cheapest price for any GOG game across **82 countries** — by URL or from your wishlist.
 
 **Requires:** Node.js ≥ 14
