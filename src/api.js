@@ -78,7 +78,13 @@ async function requestPrice(productId, price, normalize = false) {
  * @returns {Promise<void>}
  */
 async function requestPrices(productId, normalize = false) {
-  const promises = COUNTRY_PRICES.map(price => 
+  // Reset state from any previous run
+  for (const price of COUNTRY_PRICES) {
+    price.value = null;
+    price.valueUsd = null;
+    price.currency = null;
+  }
+  const promises = COUNTRY_PRICES.map(price =>
     requestPrice(productId, price, normalize)
   );
   await Promise.all(promises);
@@ -109,7 +115,7 @@ function outResult(count, pretty = false) {
   if (pretty) {
     const shiftCountry = 25;
     const shiftPrice = 10;
-    const header = `{'Country'.padEnd(shiftCountry)} {'Price'.padEnd(shiftPrice)} {'Currency'}\n`;
+    const header = `${'Country'.padEnd(shiftCountry)} ${'Price'.padEnd(shiftPrice)} Currency\n`;
     outString += header;
     outString += '-'.repeat(header.length - 1);
     for (let i = 0; i < count; i++) {

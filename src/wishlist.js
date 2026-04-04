@@ -1,6 +1,4 @@
 const https = require('https');
-const fs = require('fs');
-const path = require('path');
 const { COUNTRIES } = require('./price');
 const logger = require('./logger');
 
@@ -12,10 +10,7 @@ const logger = require('./logger');
  */
 function httpGetWithHeaders(url, headers = {}) {
   return new Promise((resolve, reject) => {
-    const options = {
-      headers: headers
-    };
-    https.get(url, options, (res) => {
+    https.get(url, { headers }, (res) => {
       let data = '';
       res.on('data', (chunk) => data += chunk);
       res.on('end', () => resolve(data));
@@ -27,7 +22,7 @@ function httpGetWithHeaders(url, headers = {}) {
  * Fetch wishlist HTML for a specific user and country code
  * @param {string} username - GOG username
  * @param {string} countryCode - Country code
- * @returns {Promise<{html: string, tempFile: string|null}>}
+ * @returns {Promise<string|null>} - HTML content or null on error
  */
 async function fetchWishlist(username, countryCode) {
   const url = `https://www.gog.com/u/${username}/wishlist`;
@@ -37,18 +32,10 @@ async function fetchWishlist(username, countryCode) {
   };
 
   try {
-    const htmlContent = await httpGetWithHeaders(url, headers);
-    
-    // Create temp file
-    const tempDir = fs.mkdtempSync(path.join(require('os').tmpdir(), 'gog-wishlist-'));
-    const tempFilename = path.join(tempDir, `wishlist-${username}-${countryCode}.html`);
-    fs.writeFileSync(tempFilename, htmlContent);
-    
-    logger.info(`Wishlist for ${username} with country code ${countryCode} saved to ${tempFilename}`);
-    return { html: htmlContent, tempFile: tempFilename };
+    return await httpGetWithHeaders(url, headers);
   } catch (error) {
-    logger.error(`Error fetching wishlist: ${error}`);
-    return { html: null, tempFile: null };
+    logger.error(`Error fetching wishlist for ${countryCode}: ${error}`);
+    return null;
   }
 }
 
@@ -69,9 +56,7 @@ function extractGogData(htmlContent) {
     for (const pattern of patterns) {
       const match = htmlContent.match(pattern);
       if (match) {
-        const gogDataStr = match[1];
-        const gogData = JSON.parse(gogDataStr);
-        return gogData;
+        return JSON.parse(match[1]);
       }
     }
 
@@ -84,114 +69,87 @@ function extractGogData(htmlContent) {
 }
 
 /**
- * Process wishlist for all countries and find the best prices
+ * Process wishlist for a single country
+ * @param {string} username
+ * @param {string} countryCode
+ * @param {string} countryName
+ * @returns {Promise<Array>} - Array of {productTitle, countryCode, countryName, price, currency}
+ */
+async function fetchWishlistForCountry(username, countryCode, countryName) {
+  const html = await fetchWishlist(username, countryCode);
+  if (!html) return [];
+
+  const gogData = extractGogData(html);
+  if (!gogData || !gogData.products) return [];
+
+  const results = [];
+  for (const product of gogData.products) {
+    const productId = product.id;
+    const productTitle = product.title;
+    if (!productId || !productTitle) continue;
+
+    const priceInfo = product.price;
+    if (!priceInfo) continue;
+
+    let amount = null;
+    let currency = 'USD';
+
+    if (typeof priceInfo === 'object') {
+      amount = priceInfo.amount;
+      const currInfo = priceInfo.currency;
+      if (typeof currInfo === 'object') {
+        currency = currInfo.code || 'USD';
+      } else if (typeof currInfo === 'string') {
+        currency = currInfo;
+      }
+    } else if (typeof priceInfo === 'string') {
+      const parts = priceInfo.split(' ');
+      if (parts.length >= 2) {
+        amount = parts[0];
+        currency = parts[1];
+      }
+    }
+
+    if (amount === null) continue;
+
+    results.push({ productTitle, countryCode, countryName, price: amount, currency });
+  }
+  return results;
+}
+
+/**
+ * Process wishlist for all countries concurrently and find the best prices
  * @param {string} username - GOG username
- * @param {boolean} normalize - Normalize to USD
+ * @param {boolean} normalize - Normalize to USD (reserved for future use)
  * @returns {Promise<Object>} - Best prices by product
  */
 async function processWishlist(username, normalize = false) {
+  const entries = Object.entries(COUNTRIES);
+
+  const allResults = await Promise.all(
+    entries.map(([countryCode, countryName]) =>
+      fetchWishlistForCountry(username, countryCode, countryName)
+    )
+  );
+
   const productPrices = {};
-
-  for (const [countryCode, countryName] of Object.entries(COUNTRIES)) {
-    logger.info(`Processing country: ${countryName} (${countryCode})`);
-
-    const { html, tempFile } = await fetchWishlist(username, countryCode);
-    if (!html) {
-      continue;
-    }
-
-    const gogData = extractGogData(html);
-    if (!gogData || !gogData.products) {
-      if (tempFile && fs.existsSync(tempFile)) {
-        fs.unlinkSync(tempFile);
-      }
-      if (tempFile) {
-        const tempDir = path.dirname(tempFile);
-        if (fs.existsSync(tempDir)) {
-          fs.rmdirSync(tempDir);
-        }
-      }
-      continue;
-    }
-
-    for (const product of gogData.products) {
-      const productId = product.id;
-      const productTitle = product.title;
-
-      if (!productId || !productTitle) {
-        continue;
-      }
-
-      const priceInfo = product.price;
-      if (!priceInfo) {
-        continue;
-      }
-
-      let amount = null;
-      let currency = 'USD';
-
-      if (typeof priceInfo === 'object') {
-        amount = priceInfo.amount;
-        const currInfo = priceInfo.currency;
-        if (typeof currInfo === 'object') {
-          currency = currInfo.code || 'USD';
-        } else if (typeof currInfo === 'string') {
-          currency = currInfo;
-        }
-      } else if (typeof priceInfo === 'string') {
-        const parts = priceInfo.split(' ');
-        if (parts.length >= 2) {
-          try {
-            amount = parts[0];
-            currency = parts[1];
-          } catch (e) {
-            logger.warn(`Could not parse price string: ${priceInfo}`);
-            continue;
-          }
-        }
-      }
-
-      if (amount === null) {
-        continue;
-      }
-
+  for (const countryResults of allResults) {
+    for (const { productTitle, countryCode, countryName, price, currency } of countryResults) {
       if (!(productTitle in productPrices)) {
         productPrices[productTitle] = {};
       }
-
-      productPrices[productTitle][countryCode] = {
-        countryCode,
-        countryName,
-        price: amount,
-        currency
-      };
-    }
-
-    if (tempFile && fs.existsSync(tempFile)) {
-      fs.unlinkSync(tempFile);
-    }
-    if (tempFile) {
-      const tempDir = path.dirname(tempFile);
-      if (fs.existsSync(tempDir)) {
-        fs.rmdirSync(tempDir);
-      }
+      productPrices[productTitle][countryCode] = { countryCode, countryName, price, currency };
     }
   }
 
   const bestPrices = {};
   for (const [productName, countryPrices] of Object.entries(productPrices)) {
-    if (Object.keys(countryPrices).length === 0) {
-      continue;
-    }
-
     let lowestPrice = null;
     let lowestCountry = null;
 
     for (const [code, priceData] of Object.entries(countryPrices)) {
       const price = parseFloat(priceData.price);
-      if (isNaN(price)) {
-        continue;
-      }
+      if (isNaN(price)) continue;
 
       if (lowestPrice === null || price < lowestPrice) {
         lowestPrice = price;
@@ -221,15 +179,13 @@ function displayBestPrices(bestPrices, pretty = false) {
   if (pretty) {
     let productWidth = 0;
     for (const product of Object.keys(bestPrices)) {
-      if (product.length > productWidth) {
-        productWidth = product.length;
-      }
+      if (product.length > productWidth) productWidth = product.length;
     }
     productWidth += 2;
     const priceWidth = 10;
     const currencyWidth = 8;
 
-    const header = `Product`.padEnd(productWidth) + `Price`.padEnd(priceWidth) + `Currency`.padEnd(currencyWidth) + 'Country';
+    const header = `${'Product'.padEnd(productWidth)}${'Price'.padEnd(priceWidth)}${'Currency'.padEnd(currencyWidth)}Country`;
     console.log(header);
     console.log('-'.repeat(header.length));
 

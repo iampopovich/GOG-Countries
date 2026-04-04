@@ -3,13 +3,16 @@
  */
 
 let verboseMode = false;
+let silentMode = false;
 
 /**
  * Setup logging based on verbosity level
  * @param {boolean} verbose - Enable verbose logging
+ * @param {boolean} silent - Suppress info/warn (used in TUI mode)
  */
-function setupLogging(verbose = false) {
+function setupLogging(verbose = false, silent = false) {
   verboseMode = verbose;
+  silentMode = silent;
   if (verbose) {
     console.debug = console.log;
   } else {
@@ -22,7 +25,9 @@ function setupLogging(verbose = false) {
  * @param {string} message - Message to log
  */
 function info(message) {
-  console.log(`${new Date().toISOString()} - INFO - ${message}`);
+  if (!silentMode) {
+    console.log(`${new Date().toISOString()} - INFO - ${message}`);
+  }
 }
 
 /**
@@ -48,7 +53,9 @@ function error(message) {
  * @param {string} message - Message to log
  */
 function warn(message) {
-  console.warn(`${new Date().toISOString()} - WARN - ${message}`);
+  if (!silentMode) {
+    console.warn(`${new Date().toISOString()} - WARN - ${message}`);
+  }
 }
 
 module.exports = {

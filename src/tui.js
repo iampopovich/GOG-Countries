@@ -1,6 +1,9 @@
 const inquirer = require('inquirer');
+const { Separator } = inquirer;
 const { extractProductId, requestPrices, sortPrices, outResult } = require('./api');
 const { processWishlist, displayBestPrices } = require('./wishlist');
+const logger = require('./logger');
+const { version } = require('../package.json');
 
 const SPINNER_FRAMES = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
 
@@ -33,6 +36,9 @@ async function handleGamePrice() {
         try {
           const parsed = new URL(v.trim());
           if (!['http:', 'https:'].includes(parsed.protocol)) return 'URL must use http or https';
+          if (!parsed.hostname.endsWith('gog.com') && !parsed.hostname.endsWith('gogdb.org')) {
+            return 'URL must be from gog.com or gogdb.org';
+          }
         } catch {
           return 'Invalid URL';
         }
@@ -73,7 +79,6 @@ async function handleGamePrice() {
       productId = await extractProductId(url.trim());
     }
     await requestPrices(productId, normalize);
-    sortPrices();
     spinner.stop('Done!');
     console.log();
     outResult(count, pretty);
@@ -122,9 +127,11 @@ async function handleWishlist() {
 }
 
 async function runTUI() {
+  logger.setupLogging(false, true);
+  const versionStr = `v${version}`.padEnd(7);
   console.log('\x1b[36m\x1b[1m');
   console.log('  ╔══════════════════════════════════════════╗');
-  console.log('  ║         GOG Price Checker  v1.0          ║');
+  console.log(`  ║       GOG Price Checker  ${versionStr}         ║`);
   console.log('  ║   Check game prices across all countries ║');
   console.log('  ╚══════════════════════════════════════════╝');
   console.log('\x1b[0m');
@@ -139,7 +146,7 @@ async function runTUI() {
         choices: [
           { name: 'Check game price by URL', value: 'url' },
           { name: 'Check wishlist by username', value: 'wishlist' },
-          new inquirer.Separator(),
+          new Separator(),
           { name: 'Quit', value: 'quit' }
         ]
       }

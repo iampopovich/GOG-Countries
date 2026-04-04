@@ -9,6 +9,7 @@ const { extractProductId, requestPrices, sortPrices, outResult } = require('./sr
 const { processWishlist, displayBestPrices } = require('./src/wishlist');
 const { runTUI } = require('./src/tui');
 const logger = require('./src/logger');
+const { version } = require('./package.json');
 
 /**
  * Parse command line arguments
@@ -26,11 +27,14 @@ function parseArgs() {
   };
 
   const argv = process.argv.slice(2);
-  
+
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
-    
-    if (arg === '-u' || arg === '--url') {
+
+    if (arg === '-V' || arg === '--version') {
+      console.log(`gog-countries v${version}`);
+      process.exit(0);
+    } else if (arg === '-u' || arg === '--url') {
       args.url = argv[++i];
     } else if (arg === '-w' || arg === '--wishlist') {
       args.wishlist = argv[++i];
@@ -66,6 +70,7 @@ Options:
   -c, --count <num>      Number of countries to show (default: 10)
   -p, --pretty           Show result as pretty table
   -v, --verbose          Enable verbose logging
+  -V, --version          Show version
   -h, --help             Show this help message
 
 Examples:
@@ -100,7 +105,6 @@ async function main() {
       productId = await extractProductId(args.url);
     }
     await requestPrices(productId, args.normalize);
-    sortPrices();
     outResult(args.count, args.pretty);
   } else {
     await runTUI();

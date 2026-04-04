@@ -3,9 +3,6 @@
  */
 
 const https = require('https');
-const fs = require('fs');
-const path = require('path');
-const os = require('os');
 const {
   fetchWishlist,
   extractGogData,
@@ -28,21 +25,6 @@ jest.mock('https', () => ({
   get: jest.fn()
 }));
 
-// Mock fs module
-jest.mock('fs', () => ({
-  ...jest.requireActual('fs'),
-  mkdtempSync: jest.fn(),
-  writeFileSync: jest.fn(),
-  unlinkSync: jest.fn(),
-  rmdirSync: jest.fn(),
-  existsSync: jest.fn()
-}));
-
-// Mock os module
-jest.mock('os', () => ({
-  ...jest.requireActual('os'),
-  tmpdir: jest.fn(() => '/tmp')
-}));
 
 describe('httpGetWithHeaders (internal function via fetchWishlist)', () => {
   beforeEach(() => {
@@ -67,13 +49,10 @@ describe('httpGetWithHeaders (internal function via fetchWishlist)', () => {
       return { on: jest.fn() };
     });
 
-    os.tmpdir.mockReturnValue('/tmp');
-    fs.mkdtempSync.mockReturnValue('/tmp/gog-wishlist-abc123');
-
     const result = await fetchWishlist('testuser', 'US');
 
     expect(https.get).toHaveBeenCalled();
-    expect(result.html).toBe(mockResponse);
+    expect(result).toBe(mockResponse);
   });
 
   test('should handle request errors', async () => {
@@ -88,12 +67,9 @@ describe('httpGetWithHeaders (internal function via fetchWishlist)', () => {
       return req;
     });
 
-    os.tmpdir.mockReturnValue('/tmp');
-
     const result = await fetchWishlist('testuser', 'US');
 
-    expect(result.html).toBeNull();
-    expect(result.tempFile).toBeNull();
+    expect(result).toBeNull();
   });
 });
 
@@ -120,15 +96,9 @@ describe('fetchWishlist', () => {
       return { on: jest.fn() };
     });
 
-    os.tmpdir.mockReturnValue('/tmp');
-    fs.mkdtempSync.mockReturnValue('/tmp/gog-wishlist-abc123');
-    fs.writeFileSync.mockImplementation(() => {});
-
     const result = await fetchWishlist('testuser', 'US');
 
-    expect(result.html).toBe(mockHtml);
-    expect(result.tempFile).toMatch(/gog-wishlist-abc123/);
-    expect(result.tempFile).toMatch(/wishlist-testuser-US\.html/);
+    expect(result).toBe(mockHtml);
     expect(https.get).toHaveBeenCalledWith(
       'https://www.gog.com/u/testuser/wishlist',
       expect.objectContaining({
@@ -155,10 +125,6 @@ describe('fetchWishlist', () => {
       callback(mockStream);
       return { on: jest.fn() };
     });
-
-    os.tmpdir.mockReturnValue('/tmp');
-    fs.mkdtempSync.mockReturnValue('/tmp/gog-wishlist-xyz');
-    fs.writeFileSync.mockImplementation(() => {});
 
     await fetchWishlist('testuser', 'DE');
 
@@ -187,35 +153,7 @@ describe('fetchWishlist', () => {
 
     const result = await fetchWishlist('testuser', 'US');
 
-    expect(result.html).toBeNull();
-    expect(result.tempFile).toBeNull();
-  });
-
-  test('should handle fs errors when creating temp file', async () => {
-    const mockHtml = '<html><body>Wishlist</body></html>';
-    const mockStream = {
-      on: jest.fn((event, callback) => {
-        if (event === 'data') callback(mockHtml);
-        else if (event === 'end') callback();
-        return mockStream;
-      })
-    };
-
-    https.get.mockImplementation((url, options, callback) => {
-      callback(mockStream);
-      return { on: jest.fn() };
-    });
-
-    os.tmpdir.mockReturnValue('/tmp');
-    fs.mkdtempSync.mockImplementation(() => {
-      throw new Error('Cannot create temp directory');
-    });
-
-    const result = await fetchWishlist('testuser', 'US');
-
-    // Should handle error gracefully
-    expect(result.html).toBeNull();
-    expect(result.tempFile).toBeNull();
+    expect(result).toBeNull();
   });
 });
 
@@ -370,13 +308,6 @@ describe('processWishlist', () => {
       return { on: jest.fn() };
     });
 
-    os.tmpdir.mockReturnValue('/tmp');
-    fs.mkdtempSync.mockReturnValue('/tmp/gog-wishlist-abc');
-    fs.writeFileSync.mockImplementation(() => {});
-    fs.existsSync.mockReturnValue(true);
-    fs.unlinkSync.mockImplementation(() => {});
-    fs.rmdirSync.mockImplementation(() => {});
-
     const result = await processWishlist('testuser', false);
 
     // Should have at least one product from any country that successfully returns data
@@ -427,13 +358,6 @@ describe('processWishlist', () => {
       return { on: jest.fn() };
     });
 
-    os.tmpdir.mockReturnValue('/tmp');
-    fs.mkdtempSync.mockReturnValue('/tmp/gog-wishlist-abc');
-    fs.writeFileSync.mockImplementation(() => {});
-    fs.existsSync.mockReturnValue(true);
-    fs.unlinkSync.mockImplementation(() => {});
-    fs.rmdirSync.mockImplementation(() => {});
-
     const result = await processWishlist('testuser', false);
 
     // Should find the game with lowest price from DE
@@ -470,13 +394,6 @@ describe('processWishlist', () => {
       callback(mockStream);
       return { on: jest.fn() };
     });
-
-    os.tmpdir.mockReturnValue('/tmp');
-    fs.mkdtempSync.mockReturnValue('/tmp/gog-wishlist-abc');
-    fs.writeFileSync.mockImplementation(() => {});
-    fs.existsSync.mockReturnValue(true);
-    fs.unlinkSync.mockImplementation(() => {});
-    fs.rmdirSync.mockImplementation(() => {});
 
     const result = await processWishlist('testuser', false);
 
@@ -515,13 +432,6 @@ describe('processWishlist', () => {
       return { on: jest.fn() };
     });
 
-    os.tmpdir.mockReturnValue('/tmp');
-    fs.mkdtempSync.mockReturnValue('/tmp/gog-wishlist-abc');
-    fs.writeFileSync.mockImplementation(() => {});
-    fs.existsSync.mockReturnValue(true);
-    fs.unlinkSync.mockImplementation(() => {});
-    fs.rmdirSync.mockImplementation(() => {});
-
     const result = await processWishlist('testuser', false);
 
     const productNames = Object.keys(result);
@@ -546,13 +456,6 @@ describe('processWishlist', () => {
       callback(mockStream);
       return { on: jest.fn() };
     });
-
-    os.tmpdir.mockReturnValue('/tmp');
-    fs.mkdtempSync.mockReturnValue('/tmp/gog-wishlist-abc');
-    fs.writeFileSync.mockImplementation(() => {});
-    fs.existsSync.mockReturnValue(true);
-    fs.unlinkSync.mockImplementation(() => {});
-    fs.rmdirSync.mockImplementation(() => {});
 
     const result = await processWishlist('testuser', false);
 
@@ -591,16 +494,12 @@ describe('processWishlist', () => {
       return { on: jest.fn() };
     });
 
-    os.tmpdir.mockReturnValue('/tmp');
-    fs.mkdtempSync.mockReturnValue('/tmp/gog-wishlist-abc');
-    fs.writeFileSync.mockImplementation(() => {});
-
     const result = await processWishlist('testuser', false);
 
     expect(result).toEqual({});
   });
 
-  test('should cleanup temp files after processing', async () => {
+  test('should process all countries and aggregate results', async () => {
     const mockGogData = {
       products: [
         { id: '123', title: 'Test Game', price: { amount: 29.99, currency: { code: 'USD' } } }
@@ -621,17 +520,11 @@ describe('processWishlist', () => {
       return { on: jest.fn() };
     });
 
-    os.tmpdir.mockReturnValue('/tmp');
-    fs.mkdtempSync.mockReturnValue('/tmp/gog-wishlist-abc');
-    fs.writeFileSync.mockImplementation(() => {});
-    fs.existsSync.mockReturnValue(true);
-    fs.unlinkSync.mockImplementation(() => {});
-    fs.rmdirSync.mockImplementation(() => {});
+    const result = await processWishlist('testuser', false);
 
-    await processWishlist('testuser', false);
-
-    expect(fs.unlinkSync).toHaveBeenCalled();
-    expect(fs.rmdirSync).toHaveBeenCalled();
+    expect(result['Test Game']).toBeDefined();
+    expect(result['Test Game']).toHaveProperty('countryCode');
+    expect(result['Test Game']).toHaveProperty('price');
   });
 });
 
@@ -814,13 +707,6 @@ describe('Integration Tests', () => {
       callback(mockStream);
       return { on: jest.fn() };
     });
-
-    os.tmpdir.mockReturnValue('/tmp');
-    fs.mkdtempSync.mockReturnValue('/tmp/gog-wishlist-abc');
-    fs.writeFileSync.mockImplementation(() => {});
-    fs.existsSync.mockReturnValue(true);
-    fs.unlinkSync.mockImplementation(() => {});
-    fs.rmdirSync.mockImplementation(() => {});
 
     const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
 
