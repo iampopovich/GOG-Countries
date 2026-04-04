@@ -1,4 +1,4 @@
-# GOG Price Checker
+# GOG Countries
 
 Find the cheapest price for any GOG game across **82 countries** — by URL or from your wishlist.
 
@@ -33,7 +33,7 @@ gog-countries
 
 ```
   ╔══════════════════════════════════════════╗
-  ║         GOG Price Checker  v1.0          ║
+  ║         GOG Countries    v1.0.x          ║
   ║   Check game prices across all countries ║
   ╚══════════════════════════════════════════╝
 

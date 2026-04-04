@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * GOG Price Checker - CLI Application
+ * GOG Countries - CLI Application
  * Check game prices across different countries
  */
 
@@ -59,7 +59,7 @@ function parseArgs() {
  */
 function printHelp() {
   console.log(`
-GOG Price Checker - Check game prices across different countries
+GOG Countries - Check game prices across different countries
 
 Usage: gog-countries [options]
 

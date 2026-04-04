@@ -297,7 +297,7 @@ describe('CLI Argument Parsing', () => {
   describe('printHelp function', () => {
     function printHelp() {
       console.log(`
-GOG Price Checker - Check game prices across different countries
+GOG Countries - Check game prices across different countries
 
 Usage: node index.js [options]
 
@@ -324,7 +324,7 @@ Examples:
 
       expect(consoleSpy).toHaveBeenCalled();
       const output = consoleSpy.mock.calls[0][0];
-      expect(output).toContain('GOG Price Checker');
+      expect(output).toContain('GOG Countries');
       expect(output).toContain('-u, --url');
       expect(output).toContain('-w, --wishlist');
       expect(output).toContain('-n, --normalize');

@@ -131,7 +131,7 @@ async function runTUI() {
   const versionStr = `v${version}`.padEnd(7);
   console.log('\x1b[36m\x1b[1m');
   console.log('  ╔══════════════════════════════════════════╗');
-  console.log(`  ║       GOG Price Checker  ${versionStr}         ║`);
+  console.log(`  ║         GOG Countries    ${versionStr}         ║`);
   console.log('  ║   Check game prices across all countries ║');
   console.log('  ╚══════════════════════════════════════════╝');
   console.log('\x1b[0m');

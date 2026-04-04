@@ -1,5 +1,5 @@
 /**
- * Logger utility for GOG Price Checker
+ * Logger utility for GOG Countries
  */
 
 let verboseMode = false;
