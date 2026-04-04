@@ -40,6 +40,7 @@ gog-countries
 ? What would you like to do?
 ❯ Check game price by URL
   Check wishlist by username
+  NPM activity statistics
   ──────────────
   Quit
 ```
@@ -83,6 +84,47 @@ The Witcher 3             499.00    ARS       Argentina
 Disco Elysium             12.49     USD       Turkey
 ```
 
+**NPM activity statistics:**
+
+```
+? What would you like to do? NPM activity statistics
+
+  NPM package name (leave blank for this package): @iampopovich/gog-countries
+  Show as pretty table? Yes
+
+  ✔ Done!
+
+ NPM Statistics: @iampopovich/gog-countries
+────────────────────────────────────────────────────────────
+Package Info
+  Description    : gog countries is a tool to check game prices...
+  Latest Version : 1.0.8
+  Total Releases : 8
+  Latest Release : 2024-03-01
+  Created        : 2023-01-01
+  Last Modified  : 2024-03-15
+  License        : MIT
+  Author         : iampopovich
+  Homepage       : https://github.com/iampopovich/GOG-Countries#readme
+
+Download Statistics
+  Last Week     : 1,234
+  Last Month    : 5,678
+  Last Year     : 42,000
+
+Recent Versions
+  • 1.0.8
+  • 1.0.7
+  • 1.0.6
+
+Dependencies (1)
+  • inquirer
+
+Dev Dependencies (1)
+  • jest
+────────────────────────────────────────────────────────────
+```
+
 ### CLI mode
 
 ```bash
@@ -94,6 +136,12 @@ gog-countries -w username --pretty
 
 # gogdb.org links also work
 gog-countries -u https://www.gogdb.org/product/1207658992
+
+# NPM activity statistics for this package
+gog-countries --npm-stats --pretty
+
+# NPM activity statistics for any package
+gog-countries --npm-stats --npm-package lodash --pretty
 ```
 
 ### All flags
@@ -105,8 +153,29 @@ gog-countries -u https://www.gogdb.org/product/1207658992
 | `--normalize` | `-n` | Convert all prices to USD | off |
 | `--count` | `-c` | How many countries to show | 10 |
 | `--pretty` | `-p` | Table output instead of plain text | off |
+| `--npm-stats` | | Show NPM activity statistics | off |
+| `--npm-package` | | NPM package name for `--npm-stats` | this package |
 | `--verbose` | `-v` | Debug logging | off |
 | `--help` | `-h` | Show help | — |
+
+## NPM Activity Statistics
+
+The `--npm-stats` flag (also available interactively in TUI mode) fetches live data from the [npm registry](https://registry.npmjs.org) and [npm download stats API](https://api.npmjs.org) and displays:
+
+- **Package info:** version, description, author, license, homepage
+- **Release history:** total versions released, date of latest release, five most recent versions
+- **Download statistics:** download counts for the last week, month, and year
+- **Dependencies:** production and development dependency lists
+
+By default it shows stats for `@iampopovich/gog-countries`. Pass `--npm-package <name>` (or enter a name in TUI) to inspect any other public npm package.
+
+```bash
+# This package's own stats (plain text)
+gog-countries --npm-stats
+
+# A third-party package, formatted
+gog-countries --npm-stats --npm-package express --pretty
+```
 
 ## License
 

@@ -2,6 +2,7 @@ const inquirer = require('inquirer');
 const { Separator } = inquirer;
 const { extractProductId, requestPrices, sortPrices, outResult } = require('./api');
 const { processWishlist, displayBestPrices } = require('./wishlist');
+const { displayNpmStats } = require('./npm-stats');
 const logger = require('./logger');
 const { version } = require('../package.json');
 
@@ -126,6 +127,36 @@ async function handleWishlist() {
   console.log();
 }
 
+async function handleNpmStats() {
+  const { packageName } = await inquirer.prompt([
+    {
+      type: 'input',
+      name: 'packageName',
+      message: 'NPM package name (leave blank for this package):',
+      default: require('../package.json').name
+    }
+  ]);
+
+  const { pretty } = await inquirer.prompt([
+    {
+      type: 'confirm',
+      name: 'pretty',
+      message: 'Show as pretty table?',
+      default: true
+    }
+  ]);
+
+  console.log();
+  const spinner = startSpinner('Fetching npm statistics...');
+  try {
+    await displayNpmStats(packageName.trim() || require('../package.json').name, pretty);
+    spinner.stop('Done!');
+  } catch (error) {
+    spinner.fail(`Error: ${error.message}`);
+  }
+  console.log();
+}
+
 async function runTUI() {
   logger.setupLogging(false, true);
   const versionStr = `v${version}`.padEnd(7);
@@ -146,6 +177,7 @@ async function runTUI() {
         choices: [
           { name: 'Check game price by URL', value: 'url' },
           { name: 'Check wishlist by username', value: 'wishlist' },
+          { name: 'NPM activity statistics', value: 'npm-stats' },
           new Separator(),
           { name: 'Quit', value: 'quit' }
         ]
@@ -158,6 +190,8 @@ async function runTUI() {
       await handleGamePrice();
     } else if (action === 'wishlist') {
       await handleWishlist();
+    } else if (action === 'npm-stats') {
+      await handleNpmStats();
     } else {
       running = false;
     }
@@ -166,4 +200,4 @@ async function runTUI() {
   console.log('\x1b[2mGoodbye!\x1b[0m\n');
 }
 
-module.exports = { runTUI };
+module.exports = { runTUI, handleNpmStats };

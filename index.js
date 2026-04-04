@@ -8,6 +8,7 @@
 const { extractProductId, requestPrices, sortPrices, outResult } = require('./src/api');
 const { processWishlist, displayBestPrices } = require('./src/wishlist');
 const { runTUI } = require('./src/tui');
+const { displayNpmStats } = require('./src/npm-stats');
 const logger = require('./src/logger');
 const { version } = require('./package.json');
 
@@ -23,7 +24,9 @@ function parseArgs() {
     count: 10,
     pretty: false,
     verbose: false,
-    help: false
+    help: false,
+    npmStats: false,
+    npmPackage: null
   };
 
   const argv = process.argv.slice(2);
@@ -48,6 +51,10 @@ function parseArgs() {
       args.verbose = true;
     } else if (arg === '-h' || arg === '--help') {
       args.help = true;
+    } else if (arg === '--npm-stats') {
+      args.npmStats = true;
+    } else if (arg === '--npm-package') {
+      args.npmPackage = argv[++i];
     }
   }
 
@@ -64,19 +71,23 @@ GOG Countries - Check game prices across different countries
 Usage: gog-countries [options]
 
 Options:
-  -u, --url <url>        URL of the game page to scrape
-  -w, --wishlist <user>  Username to fetch wishlist for
-  -n, --normalize        Normalize currencies to USD
-  -c, --count <num>      Number of countries to show (default: 10)
-  -p, --pretty           Show result as pretty table
-  -v, --verbose          Enable verbose logging
-  -V, --version          Show version
-  -h, --help             Show this help message
+  -u, --url <url>            URL of the game page to scrape
+  -w, --wishlist <user>      Username to fetch wishlist for
+  -n, --normalize            Normalize currencies to USD
+  -c, --count <num>          Number of countries to show (default: 10)
+  -p, --pretty               Show result as pretty table
+      --npm-stats            Show NPM activity statistics for this package
+      --npm-package <name>   NPM package name for stats (default: this package)
+  -v, --verbose              Enable verbose logging
+  -V, --version              Show version
+  -h, --help                 Show this help message
 
 Examples:
   gog-countries -u https://www.gog.com/game/diablo -n -p
   gog-countries -w username -p
   gog-countries --url https://www.gog.com/game/cyberpunk_2077 --count 5
+  gog-countries --npm-stats
+  gog-countries --npm-stats --npm-package lodash --pretty
 `);
 }
 
@@ -93,7 +104,10 @@ async function main() {
 
   logger.setupLogging(args.verbose);
 
-  if (args.wishlist) {
+  if (args.npmStats) {
+    const packageName = args.npmPackage || require('./package.json').name;
+    await displayNpmStats(packageName, args.pretty);
+  } else if (args.wishlist) {
     logger.info(`Fetching wishlist for user: ${args.wishlist}`);
     const bestPrices = await processWishlist(args.wishlist, args.normalize);
     displayBestPrices(bestPrices, args.pretty);
