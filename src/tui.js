@@ -1,5 +1,4 @@
 const inquirer = require('inquirer');
-const { Separator } = inquirer;
 const { extractProductId, requestPrices, sortPrices, outResult } = require('./api');
 const { processWishlist, displayBestPrices } = require('./wishlist');
 const logger = require('./logger');
@@ -146,7 +145,6 @@ async function runTUI() {
         choices: [
           { name: 'Check game price by URL', value: 'url' },
           { name: 'Check wishlist by username', value: 'wishlist' },
-          new Separator(),
           { name: 'Quit', value: 'quit' }
         ]
       }
