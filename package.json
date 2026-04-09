@@ -48,7 +48,7 @@
     "prepublishOnly": "npm test"
   },
   "devDependencies": {
-    "jest": "^29.7.0"
+    "jest": "^30.3.0"
   },
   "dependencies": {
     "inquirer": "^13.3.2"
